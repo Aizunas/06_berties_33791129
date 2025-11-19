@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Audit</title>
+</head>
+<body>
+    <h1>Login Audit History</h1>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Username</th>
+            <th>Success</th>
+            <th>Timestamp</th>
+        </tr>
+        <% logs.forEach(function(log) { %>
+            <tr>
+                <td><%= log.username %></td>
+                <td><%= log.success ? "Yes" : "No" %></td>
+                <td><%= log.timestamp %></td>
+            </tr>
+        <% }) %>
+    </table>
+</body>
+</html>

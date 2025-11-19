@@ -55,39 +55,54 @@ router.get('/login', (req, res) => {
 });
 
 // Handle login submission
-router.post('/loggedin', (req, res) => {
+router.post('/loggedin', function(req, res, next) {
     const { username, password } = req.body;
 
-    // Find the user by username
-    const sql = "SELECT * FROM users WHERE username = ?";
+    const sql = "SELECT hashed_password, first_name, last_name FROM users WHERE username=?";
     db.query(sql, [username], (err, results) => {
-        if (err) {
+        if(err) {
             console.error(err);
             return res.send("Database error.");
         }
 
-        if (results.length === 0) {
-            return res.send("User not found.");
+        if(results.length === 0) {
+            // Username not found, log failed attempt
+            db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, false]);
+            return res.send("Login failed: username not found.");
         }
 
-        const user = results[0];
-        const hashedPassword = user.hashed_password;
+        const hashedPassword = results[0].hashed_password;
+        const firstName = results[0].first_name;
+        const lastName = results[0].last_name;
 
-        // Compare entered password with hashed password
-        bcrypt.compare(password, hashedPassword, (err, result) => {
-            if (err) {
+        bcrypt.compare(password, hashedPassword, function(err, result) {
+            if(err) {
                 console.error(err);
                 return res.send("Error comparing passwords.");
             }
 
-            if (result === true) {
-                res.send(`Login successful! Welcome, ${user.first_name} ${user.last_name}.`);
+            if(result === true) {
+                // Successful login
+                db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, true]);
+                return res.send(`Login successful! Welcome, ${firstName} ${lastName}.`);
             } else {
-                res.send("Incorrect password.");
+                // Failed login
+                db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, false]);
+                return res.send("Login failed: incorrect password.");
             }
         });
     });
 });
+
+router.get('/audit', function(req, res, next) {
+    const sql = "SELECT username, success, timestamp FROM login_audit ORDER BY timestamp DESC";
+    db.query(sql, (err, results) => {
+        if(err) return next(err);
+
+        res.render("audit.ejs", { logs: results });
+    });
+});
+
 
 
 // Export the router object so index.js can access it

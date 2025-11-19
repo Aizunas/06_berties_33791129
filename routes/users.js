@@ -36,5 +36,19 @@ router.post('/registered', function (req, res, next) {
     });
 });
 
+// Route: List all users (without passwords)
+router.get('/list', function(req, res, next) {
+    let sqlquery = "SELECT id, username, first_name, last_name, email FROM users"; // exclude hashed_password
+    db.query(sqlquery, (err, result) => {
+        if (err) {
+            console.error(err);
+            next(err);
+        } else {
+            res.render("listusers.ejs", { users: result }); // render users in a template
+        }
+    });
+});
+
+
 // Export the router object so index.js can access it
 module.exports = router;

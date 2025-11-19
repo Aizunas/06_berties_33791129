@@ -66,9 +66,12 @@ router.post('/loggedin', function(req, res, next) {
         }
 
         if(results.length === 0) {
-            // Username not found, log failed attempt
-            db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, false]);
-            return res.send("Login failed: username not found.");
+            // Username not found
+            db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, 0], (err) => {
+                if(err) console.error("Audit log error:", err);
+                return res.send("Login failed: username not found.");
+            });
+            return;
         }
 
         const hashedPassword = results[0].hashed_password;
@@ -81,18 +84,22 @@ router.post('/loggedin', function(req, res, next) {
                 return res.send("Error comparing passwords.");
             }
 
-            if(result === true) {
-                // Successful login
-                db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, true]);
-                return res.send(`Login successful! Welcome, ${firstName} ${lastName}.`);
-            } else {
-                // Failed login
-                db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, false]);
-                return res.send("Login failed: incorrect password.");
-            }
+            const successFlag = result ? 1 : 0;
+
+            // Log audit BEFORE sending response
+            db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, successFlag], (err) => {
+                if(err) console.error("Audit log error:", err);
+
+                if(result) {
+                    return res.send(`Login successful! Welcome, ${firstName} ${lastName}.`);
+                } else {
+                    return res.send("Login failed: incorrect password.");
+                }
+            });
         });
     });
 });
+
 
 router.get('/audit', function(req, res, next) {
     const sql = "SELECT username, success, timestamp FROM login_audit ORDER BY timestamp DESC";

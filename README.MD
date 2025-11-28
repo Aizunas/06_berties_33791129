@@ -20,3 +20,16 @@ BB_PASSWORD='qwertyuiop'
 BB_DATABASE='berties_books'
 
 The `.env` file is excluded from git. 
+
+## Access Control
+Routes restricted to logged-in users:
+/users/list – list all users
+/users/audit – view login audit logs
+/books/addbook – add a new book
+Routes accessible without login:
+/ – home page
+/books/list – view all books
+/books/bargainbooks – view books under £20
+/books/search – search form and results
+/users/register – user registration
+/users/login – login page

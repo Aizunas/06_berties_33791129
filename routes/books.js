@@ -7,7 +7,7 @@ const router = express.Router();
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
         // If not logged in, redirect to login page
-        return res.redirect('/users/login');
+        return res.redirect('./login');
     }
     next();
 };
@@ -78,3 +78,9 @@ router.get('/search-result', (req, res, next) => {
 // Export the router
 // ---------------------------
 module.exports = router;
+
+https://www.doc.gold.ac.uk/usr/313/users/register
+https://www.doc.gold.ac.uk/usr/313/users/login
+https://www.doc.gold.ac.uk/usr/313/users/list
+https://www.doc.gold.ac.uk/usr/313/users/audit
+https://www.doc.gold.ac.uk/usr/313/logout

@@ -4,7 +4,7 @@ const router = express.Router();
 // Middleware to protect routes (redirects to login if not logged in)
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
-        return res.redirect('/users/login');
+        return res.redirect('./login');
     }
     next();
 };

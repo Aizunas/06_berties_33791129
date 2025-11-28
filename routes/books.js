@@ -79,8 +79,4 @@ router.get('/search-result', (req, res, next) => {
 // ---------------------------
 module.exports = router;
 
-https://www.doc.gold.ac.uk/usr/313/users/register
-https://www.doc.gold.ac.uk/usr/313/users/login
-https://www.doc.gold.ac.uk/usr/313/users/list
-https://www.doc.gold.ac.uk/usr/313/users/audit
-https://www.doc.gold.ac.uk/usr/313/logout
+

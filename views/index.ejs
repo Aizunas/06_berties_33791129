@@ -6,6 +6,11 @@
   </head>
   <body>
     <h1>Welcome to <%= shopData.shopName %></h1>
+    <% if (typeof session !== 'undefined' && session.userId) { %>
+      <p>Welcome, <%= session.displayName || session.userId %> | <a href="/logout">Logout</a></p>
+    <% } else { %>
+      <p><a href="/users/login">Login</a> | <a href="/users/register">Register</a></p>
+    <% } %>
     
     <p><a href="about">About <%= shopData.shopName %></a></p>
     <p><a href="/books/search">Search for books</a></p>

@@ -1,17 +1,18 @@
 const express = require("express");
 const router = express.Router();
 
+const redirectLogin = (req, res, next) => {
+  if (!req.session.userId) return res.redirect('/users/login');
+  next();
+};
+
 // Route: List all books
-router.get('/list', function(req, res, next) {
-    let sqlquery = "SELECT * FROM books";
-    db.query(sqlquery, (err, result) => {
-        if (err) {
-            console.error(err);
-            next(err);
-        } else {
-            res.render("list.ejs", { availableBooks: result });
-        }
-    });
+router.get('/list', redirectLogin, function(req, res, next) {
+  let sqlquery = "SELECT * FROM books";
+  db.query(sqlquery, (err, result) => {
+    if (err) return next(err);
+    res.render("list.ejs", { availableBooks: result });
+  });
 });
 
 // Route: Add Book form

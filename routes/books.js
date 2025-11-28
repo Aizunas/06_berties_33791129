@@ -1,14 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-// ---------------------------
-// Middleware: Protect routes
-// ---------------------------
+// Middleware to protect routes
 const redirectLogin = (req, res, next) => {
-    if (!req.session.userId) {
-        // If not logged in, redirect to login page
-        return res.redirect('./login');
-    }
+    if (!req.session.userId) return res.redirect('./login');
     next();
 };
 
@@ -16,27 +11,23 @@ const redirectLogin = (req, res, next) => {
 // Protected Routes
 // ---------------------------
 
-// Route: List all books (requires login)
 router.get('/list', redirectLogin, (req, res, next) => {
-    let sqlquery = "SELECT * FROM books";
-    db.query(sqlquery, (err, result) => {
+    db.query("SELECT * FROM books", (err, result) => {
         if (err) return next(err);
-        res.render("list.ejs", { availableBooks: result });
+        res.render("list", { availableBooks: result });
     });
 });
 
-// Route: Add Book form (requires login)
-router.get('/addbook', redirectLogin, (req, res) => {
-    res.render('addbook.ejs');
-});
+router.get('/addbook', redirectLogin, (req, res) => res.render('addbook'));
 
-// Route: Handle Add Book form submission (requires login)
 router.post('/bookadded', redirectLogin, (req, res, next) => {
-    let sqlquery = "INSERT INTO books (name, price) VALUES (?, ?)";
-    let newrecord = [req.body.name, req.body.price];
-    db.query(sqlquery, newrecord, (err, result) => {
+    const name = req.sanitize(req.body.name);
+    const price = parseFloat(req.body.price);
+    if (isNaN(price) || price < 0) return res.send("Invalid price");
+
+    db.query("INSERT INTO books (name, price) VALUES (?, ?)", [name, price], (err) => {
         if (err) return next(err);
-        res.send(`This book is added to the database. Name: ${req.body.name}, Price: £${req.body.price}`);
+        res.send(`Book added: ${name}, Price: £${price}`);
     });
 });
 
@@ -44,39 +35,23 @@ router.post('/bookadded', redirectLogin, (req, res, next) => {
 // Public Routes
 // ---------------------------
 
-// Route: Bargain books (price < £20) – accessible to everyone
 router.get('/bargainbooks', (req, res, next) => {
-    let sqlquery = "SELECT name, price FROM books WHERE price < 20";
-    db.query(sqlquery, (err, result) => {
+    db.query("SELECT name, price FROM books WHERE price < 20", (err, result) => {
         if (err) return next(err);
-        res.render("list.ejs", { availableBooks: result });
+        res.render("list", { availableBooks: result });
     });
 });
 
-// Route: Search page (form) – accessible to everyone
-router.get('/search', (req, res, next) => {
-    res.render("search.ejs"); // contains input form
-});
+router.get('/search', (req, res) => res.render("search"));
 
-// Route: Handle search query (supports partial match) – accessible to everyone
 router.get('/search-result', (req, res, next) => {
-    let keyword = req.query.keyword;
-    if (!keyword) {
-        return res.render("list.ejs", { availableBooks: [] });
-    }
+    let keyword = req.sanitize(req.query.keyword);
+    if (!keyword) return res.render("list", { availableBooks: [] });
 
-    let sqlquery = "SELECT name, price FROM books WHERE name LIKE ?";
-    let searchTerm = '%' + keyword + '%';
-
-    db.query(sqlquery, [searchTerm], (err, result) => {
+    db.query("SELECT name, price FROM books WHERE name LIKE ?", ['%' + keyword + '%'], (err, result) => {
         if (err) return next(err);
-        res.render("list.ejs", { availableBooks: result });
+        res.render("list", { availableBooks: result });
     });
 });
 
-// ---------------------------
-// Export the router
-// ---------------------------
 module.exports = router;
-
-

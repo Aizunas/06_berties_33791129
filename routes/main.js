@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// Add redirectLogin so it can be used in this file
+// Middleware to protect routes (redirects to login if not logged in)
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
         return res.redirect('/users/login');
@@ -9,12 +9,20 @@ const redirectLogin = (req, res, next) => {
     next();
 };
 
-// Home page
-router.get('/', function(req, res, next) {
+// ---------------------------
+// Public Routes
+// ---------------------------
+
+// Home page (accessible to everyone)
+router.get('/', (req, res) => {
     res.render('index.ejs');
 });
 
-// Logout route
+// ---------------------------
+// Logout Route
+// ---------------------------
+
+// Logout (only accessible to logged-in users)
 router.get('/logout', redirectLogin, (req, res) => {
     req.session.destroy(err => {
         if (err) {
@@ -24,5 +32,5 @@ router.get('/logout', redirectLogin, (req, res) => {
     });
 });
 
-// Export router
+// Export the router
 module.exports = router;

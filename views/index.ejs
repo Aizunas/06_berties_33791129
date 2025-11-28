@@ -6,23 +6,37 @@
   </head>
   <body>
     <h1>Welcome to <%= shopData.shopName %></h1>
-    <% if (typeof session !== 'undefined' && session.userId) { %>
-      <p>Welcome, <%= session.displayName || session.userId %> | <a href="/logout">Logout</a></p>
-    <% } else { %>
-      <p><a href="/users/login">Login</a> | <a href="/users/register">Register</a></p>
-    <% } %>
-    
-    <p><a href="about">About <%= shopData.shopName %></a></p>
-    <p><a href="/books/search">Search for books</a></p>
-    <p><a href="users/register">Register with us</a></p>
-    <p><a href="/books/list">Book List</a></p>
-    <p><a href="/books/addbook">Add Book</a></p>
 
+    <!-- Session-based login/logout links -->
+    <% if (session && session.userId) { %>
+      <p>
+        Welcome, <%= session.displayName || session.userId %> |
+        <a href="/logout">Logout</a>
+      </p>
+    <% } else { %>
+      <p>
+        <a href="/users/login">Login</a> |
+        <a href="/users/register">Register</a>
+      </p>
+    <% } %>
+
+    <!-- Navigation links -->
+    <p><a href="/about">About <%= shopData.shopName %></a></p>
+    <p><a href="/books/search">Search for books</a></p>
     
+    <!-- Protected pages: only show links if logged in -->
+    <% if (session && session.userId) { %>
+      <p><a href="/books/list">Book List</a></p>
+      <p><a href="/books/addbook">Add Book</a></p>
+    <% } else { %>
+      <p>Login to see book list or add a book.</p>
+    <% } %>
+
+    <!-- Search form: always visible -->
     <form action="/books/search-result" method="GET">
         <input type="text" name="keyword" placeholder="Search books" required>
         <button type="submit">Search</button>
     </form>
-    
+
   </body>
 </html>

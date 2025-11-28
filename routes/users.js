@@ -1,67 +1,61 @@
-// Create a new router
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const bcrypt = require("bcrypt"); // Import bcrypt for password hashing
+const bcrypt = require('bcrypt'); // For password hashing
 const saltRounds = 10;
 
+// Middleware to protect routes (redirects to login if not logged in)
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
-        return res.redirect('/users/login');  // must be logged in
+        return res.redirect('/users/login');
     }
     next();
 };
 
+// ---------------------------
+// Registration Routes
+// ---------------------------
+
 // Render registration form
-router.get('/register', function (req, res, next) {
+router.get('/register', (req, res) => {
     res.render('register.ejs');
 });
 
 // Handle registration form submission
-router.post('/registered', function (req, res, next) {
+router.post('/registered', (req, res) => {
     const { username, first, last, email, password } = req.body;
 
-    // Hash the password before storing
-    bcrypt.hash(password, saltRounds, function(err, hashedPassword) {
+    // Hash the password
+    bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
         if (err) {
             console.error(err);
             return res.send("Error hashing password.");
         }
 
-        // Save user data to database
-        const sql = 'INSERT INTO users (username, first_name, last_name, email, hashed_password) VALUES (?, ?, ?, ?, ?)';
+        // Save user to database
+        const sql = `INSERT INTO users (username, first_name, last_name, email, hashed_password) 
+                     VALUES (?, ?, ?, ?, ?)`;
         db.query(sql, [username, first, last, email, hashedPassword], (err, result) => {
             if (err) {
                 console.error(err);
-                return res.send("Error inserting user into DB.");
+                return res.send("Error inserting user into database.");
             }
 
-            let output = `Hello ${first} ${last}, you are now registered! We will send an email to ${email}. `;
-            output += `Your password is: ${password} and your hashed password is: ${hashedPassword}`;
-            res.send(output);
+            res.send(`Hello ${first} ${last}, you are now registered! <a href='/users/login'>Login</a>`);
         });
     });
 });
 
-// Route: List all users (without passwords)
-router.get('/list', redirectLogin, function(req, res, next) {
-    const sqlquery = "SELECT id, username, first_name, last_name, email FROM users";
-    db.query(sqlquery, (err, result) => {
-        if (err) {
-            console.error(err);
-            next(err);
-        } else {
-            res.render("listusers.ejs", { users: result });
-        }
-    });
-});
+// ---------------------------
+// Login Routes
+// ---------------------------
 
 // Render login form
 router.get('/login', (req, res) => {
-    res.render('login.ejs'); // the form you just created
+    res.render('login.ejs');
 });
 
 // Handle login submission
-router.post('/loggedin', function(req, res, next) {
+router.post('/loggedin', (req, res) => {
     const { username, password } = req.body;
 
     const sql = "SELECT hashed_password, first_name, last_name FROM users WHERE username=?";
@@ -80,38 +74,48 @@ router.post('/loggedin', function(req, res, next) {
         const firstName = results[0].first_name;
         const lastName = results[0].last_name;
 
-        bcrypt.compare(password, hashedPassword, function(err, match) {
+        bcrypt.compare(password, hashedPassword, (err, match) => {
             if (err) {
                 console.error(err);
                 return res.send("Error comparing passwords.");
             }
 
             const successFlag = match ? 1 : 0;
-
             db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, successFlag]);
 
             if (match) {
-            
+                // Save session data
                 req.session.userId = username;
                 req.session.displayName = `${firstName} ${lastName}`;
-
-                return res.send(`Login successful! Welcome, ${firstName} ${lastName}.`);
+                res.send(`Login successful! Welcome, ${firstName} ${lastName}. <a href='/users/list'>Go to User List</a>`);
             } else {
-                return res.send("Login failed: incorrect password.");
+                res.send("Login failed: incorrect password.");
             }
         });
     });
 });
 
-router.get('/audit', redirectLogin, function(req, res, next) {
+// ---------------------------
+// Protected Routes
+// ---------------------------
+
+// List all users (only logged-in users)
+router.get('/list', redirectLogin, (req, res) => {
+    const sql = "SELECT id, username, first_name, last_name, email FROM users";
+    db.query(sql, (err, result) => {
+        if (err) return res.send("Error fetching users.");
+        res.render("listusers.ejs", { users: result });
+    });
+});
+
+// Audit logs (only logged-in users)
+router.get('/audit', redirectLogin, (req, res) => {
     const sql = "SELECT username, success, timestamp FROM login_audit ORDER BY timestamp DESC";
     db.query(sql, (err, results) => {
-        if (err) return next(err);
-
+        if (err) return res.send("Error fetching audit logs.");
         res.render("audit.ejs", { logs: results });
     });
 });
 
-
-// Export the router object so index.js can access it
+// Export the router
 module.exports = router;

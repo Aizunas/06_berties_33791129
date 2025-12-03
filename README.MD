@@ -33,3 +33,18 @@ Routes accessible without login:
 /books/search – search form and results
 /users/register – user registration
 /users/login – login page
+
+## Berties Books API
+
+### Get all books
+GET /api/books
+
+### Search books
+GET /api/books?search=keyword
+
+### Price range
+GET /api/books?minprice=5&maxprice=10
+
+### Sort results
+GET /api/books?sort=name
+GET /api/books?sort=price

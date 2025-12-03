@@ -3,7 +3,7 @@ const router = express.Router();
 
 // Middleware to protect routes
 const redirectLogin = (req, res, next) => {
-    if (!req.session.userId) return res.redirect('./login');
+    if (!req.session.userId) return res.redirect('/users/login');
     next();
 };
 
@@ -18,7 +18,7 @@ router.get('/list', redirectLogin, (req, res, next) => {
     });
 });
 
-router.get('/addbook', redirectLogin, (req, res) => res.render('addbook'));
+router.get('/add', redirectLogin, (req, res) => res.render('addbook'));
 
 router.post('/bookadded', redirectLogin, (req, res, next) => {
     const name = req.sanitize(req.body.name);

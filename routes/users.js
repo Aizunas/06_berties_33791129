@@ -7,9 +7,10 @@ const saltRounds = 10;
 
 // Middleware to protect routes
 const redirectLogin = (req, res, next) => {
-    if (!req.session.userId) return res.redirect('./login');
+    if (!req.session.userId) return res.redirect('/users/login');
     next();
 };
+
 
 // ---------------------------
 // Registration Routes
@@ -21,7 +22,7 @@ router.get('/register', (req, res) => {
 });
 
 // Handle registration submission
-router.post('/registered',
+router.post('/register',
     [
         check('email').isEmail().withMessage('Invalid email address'),
         check('username').isLength({ min: 5, max: 20 }).withMessage('Username must be 5-20 chars'),

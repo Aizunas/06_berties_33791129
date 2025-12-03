@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather in <%= city %></title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f0f8ff; color: #333; }
+        .weather-box { padding: 20px; border-radius: 8px; background-color: #d0e7ff; display: inline-block; }
+        h1 { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <div class="weather-box">
+        <h1>Weather in <%= city %></h1>
+        <p>Temperature: <%= temp %> °C</p>
+        <p>Humidity: <%= humidity %> %</p>
+        <p>Wind Speed: <%= wind %> m/s</p>
+        <p>Condition: <%= description %></p>
+    </div>
+</body>
+</html>

@@ -11,6 +11,9 @@ const session = require('express-session');
 const app = express();
 const port = 8000;
 
+// BASE PATH for VM deployment
+const BASE_PATH = process.env.BASE_PATH || '';
+
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(expressSanitizer()); // sanitize incoming data
@@ -24,9 +27,10 @@ app.use(session({
     cookie: { expires: 600000 } // 10 minutes
 }));
 
-// Make session available in EJS
+// Make session and BASE_PATH available in EJS
 app.use((req, res, next) => {
     res.locals.session = req.session;
+    res.locals.BASE_PATH = BASE_PATH;
     next();
 });
 
@@ -34,7 +38,10 @@ app.use((req, res, next) => {
 app.set('view engine', 'ejs');
 
 // Application-specific data
-app.locals.shopData = { shopName: "Bertie's Books" };
+app.locals.shopData = { 
+    shopName: "Bertie's Books",
+    basePath: BASE_PATH 
+};
 
 // Database connection
 const db = mysql.createPool({
@@ -64,6 +71,25 @@ app.use('/weather', weatherRoutes);
 const apiRoutes = require('./routes/api');
 app.use('/api', apiRoutes);
 
+const aboutRoutes = require('./routes/about');
+app.use('/about', aboutRoutes);
+
+// Database connection check
+db.getConnection((err, connection) => {
+    if (err) {
+        console.error('Database connection failed:', err);
+        process.exit(1);
+    } else {
+        console.log('Database connected successfully');
+        connection.release();
+    }
+});
+
+// Request logging middleware
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
 
 // Start server
 app.listen(port, () => console.log(`App listening on port ${port}!`));

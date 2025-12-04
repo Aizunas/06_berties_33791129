@@ -11,23 +11,23 @@
     <% if (session && session.userId) { %>
       <p>
         Welcome, <%= session.displayName || session.userId %> |
-        <a href="/logout">Logout</a>
+        <a href="<%= shopData.basePath || '' %>/logout">Logout</a>
       </p>
     <% } else { %>
       <p>
-        <a href="/users/login">Login</a> |
-        <a href="/users/register">Register</a>
+        <a href="<%= shopData.basePath || '' %>/users/login">Login</a> |
+        <a href="<%= shopData.basePath || '' %>/users/register">Register</a>
       </p>
     <% } %>
 
     <!-- Navigation links -->
-    <p><a href="/about">About <%= shopData.shopName %></a></p>
-    <p><a href="/books/search">Search for books</a></p>
+    <p><a href="<%= shopData.basePath || '' %>/about">About <%= shopData.shopName %></a></p>
+    <p><a href="<%= shopData.basePath || '' %>/books/search">Search for books</a></p>
     
     <!-- Protected pages: only show links if logged in -->
     <% if (session && session.userId) { %>
-      <p><a href="/books/list">Book List</a></p>
-      <p><a href="/books/addbook">Add Book</a></p>
+      <p><a href="<%= shopData.basePath || '' %>/books/list">Book List</a></p>
+      <p><a href="<%= shopData.basePath || '' %>/books/add">Add Book</a></p>
     <% } else { %>
       <p>Login to see book list or add a book.</p>
     <% } %>

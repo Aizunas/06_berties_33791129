@@ -2,12 +2,12 @@
 <html>
 <head>
     <title>Register for <%=shopData.shopName%></title>
-    <link rel="stylesheet" type="text/css" href="/main.css" />
+    <link rel="stylesheet" type="text/css" href="<%= BASE_PATH || '' %>/main.css" />
 </head>
 <body>
     <h1>Register for <%=shopData.shopName%></h1>
 
-    <% if (errors.length > 0) { %>
+    <% if (errors && errors.length > 0) { %>
         <ul style="color:red;">
             <% errors.forEach(err => { %>
                 <li><%= err.msg %></li>
@@ -15,7 +15,8 @@
         </ul>
     <% } %>
 
-    <form method="POST" action="/users/register">
+    
+    <form method="POST" action="<%= shopData.basePath || '' %>/users/registered">
         <p>Username: <input type="text" name="username" required /></p>
         <p>Password: <input type="password" name="password" required /></p>
         <p>First name: <input type="text" name="first" /></p>
@@ -23,5 +24,7 @@
         <p>Email: <input type="email" name="email" /></p>
         <input type="submit" value="Register" />
     </form>
+    
+    <p><a href="<%= shopData.basePath || '' %>/users/login">Already have an account? Login</a></p>
 </body>
 </html>

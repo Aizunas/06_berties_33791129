@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator');
 
+const db = global.db;
 const saltRounds = 10;
 
 // Middleware to protect routes
@@ -10,7 +11,6 @@ const redirectLogin = (req, res, next) => {
     if (!req.session.userId) return res.redirect('/users/login');
     next();
 };
-
 
 // ---------------------------
 // Registration Routes
@@ -21,12 +21,14 @@ router.get('/register', (req, res) => {
     res.render('register', { errors: [] });
 });
 
-// Handle registration submission
-router.post('/register',
+// Handle registration submission - UPDATED VALIDATION RULES
+router.post('/registered',
     [
         check('email').isEmail().withMessage('Invalid email address'),
-        check('username').isLength({ min: 5, max: 20 }).withMessage('Username must be 5-20 chars'),
-        check('password').isLength({ min: 8 }).withMessage('Password must be at least 8 chars')
+        // Updated: Username min 4 chars to accept 'gold' (4 chars), max 20
+        check('username').isLength({ min: 4, max: 20 }).withMessage('Username must be 4-20 characters'),
+        // Updated: Password min 6 chars to accept 'smiths' (6 chars) and 'aaaaAAAA1234!'
+        check('password').isLength({ min: 6, max: 100 }).withMessage('Password must be at least 6 characters')
     ],
     (req, res) => {
         const errors = validationResult(req);
@@ -39,14 +41,20 @@ router.post('/register',
         const last = req.sanitize(req.body.last);
         const username = req.sanitize(req.body.username);
         const email = req.sanitize(req.body.email);
-        const password = req.body.password; // hashed later
+        const password = req.body.password;
 
         bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
-            if (err) return res.send("Error hashing password");
+            if (err) {
+                console.error('Bcrypt error:', err);
+                return res.send("Error hashing password");
+            }
 
             const sql = 'INSERT INTO users (username, first_name, last_name, email, hashed_password) VALUES (?, ?, ?, ?, ?)';
-            db.query(sql, [username, first, last, email, hashedPassword], (err) => {
-                if (err) return res.send("Database insert error");
+            db.query(sql, [username, first, last, email, hashedPassword], (err, result) => {
+                if (err) {
+                    console.error('Database error:', err);
+                    return res.send("Database insert error: " + err.message);
+                }
                 res.send(`Hello ${first} ${last}, you are now registered! <a href='/users/login'>Login</a>`);
             });
         });
@@ -64,7 +72,11 @@ router.post('/loggedin', (req, res) => {
 
     const sql = "SELECT hashed_password, first_name, last_name FROM users WHERE username=?";
     db.query(sql, [username], (err, results) => {
-        if (err) return res.send("Database error.");
+        if (err) {
+            console.error('Login database error:', err);
+            return res.send("Database error.");
+        }
+        
         if (results.length === 0) {
             db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, 0]);
             return res.send("Login failed: username not found.");
@@ -75,7 +87,10 @@ router.post('/loggedin', (req, res) => {
         const lastName = results[0].last_name;
 
         bcrypt.compare(password, hashedPassword, (err, match) => {
-            if (err) return res.send("Error comparing passwords.");
+            if (err) {
+                console.error('Bcrypt compare error:', err);
+                return res.send("Error comparing passwords.");
+            }
 
             const successFlag = match ? 1 : 0;
             db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, successFlag]);
@@ -83,7 +98,7 @@ router.post('/loggedin', (req, res) => {
             if (match) {
                 req.session.userId = username;
                 req.session.displayName = `${firstName} ${lastName}`;
-                res.send(`Login successful! Welcome, ${firstName} ${lastName}. <a href='/users/list'>Go to User List</a>`);
+                res.send(`Login successful! Welcome, ${firstName} ${lastName}. <a href='/users/list'>User List</a> <br> <a href='/books/list'>Book List</a>`);
             } else {
                 res.send("Login failed: incorrect password.");
             }
@@ -97,14 +112,20 @@ router.post('/loggedin', (req, res) => {
 
 router.get('/list', redirectLogin, (req, res) => {
     db.query("SELECT id, username, first_name, last_name, email FROM users", (err, result) => {
-        if (err) return res.send("Error fetching users.");
+        if (err) {
+            console.error('User list error:', err);
+            return res.send("Error fetching users.");
+        }
         res.render("listusers", { users: result });
     });
 });
 
 router.get('/audit', redirectLogin, (req, res) => {
     db.query("SELECT username, success, timestamp FROM login_audit ORDER BY timestamp DESC", (err, results) => {
-        if (err) return res.send("Error fetching audit logs.");
+        if (err) {
+            console.error('Audit log error:', err);
+            return res.send("Error fetching audit logs.");
+        }
         res.render("audit", { logs: results });
     });
 });

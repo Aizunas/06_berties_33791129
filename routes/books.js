@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
+const BASE_PATH = process.env.BASE_PATH || '';
+
 // Middleware to protect routes
 const redirectLogin = (req, res, next) => {
-    if (!req.session.userId) return res.redirect('/users/login');
+    if (!req.session.userId) return res.redirect(`${BASE_PATH}/users/login`);
     next();
 };
 

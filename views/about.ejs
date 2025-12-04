@@ -1,11 +1,12 @@
 <!doctype html>
 <html>
   <head>
-    <title>About <%=shopData.shopName%></title>
-    <link rel="stylesheet"  type="text/css" href="/main.css" />
+    <title>About <%= shopData.shopName %></title>
+    <link rel="stylesheet" type="text/css" href="<%= BASE_PATH || '' %>/main.css" />
   </head>
   <body>
-    <h1>About <%=shopData.shopName%></h1>
+    <h1>About <%= shopData.shopName %></h1>
     <p>We sell all sorts of books and nothing else!</p>
+    <p><a href="<%= shopData.basePath || '' %>/">Home</a></p>
   </body>
 </html>

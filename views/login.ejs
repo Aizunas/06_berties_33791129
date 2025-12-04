@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Login</title>
-    <link rel="stylesheet" type="text/css" href="/main.css">
+    <link rel="stylesheet" type="text/css" href="<%= BASE_PATH || '' %>/main.css">
 </head>
 <body>
     <h1>Login</h1>
@@ -23,6 +23,6 @@
         </p>
     </form>
 
-    <p>Don't have an account? <a href="/users/register">Register here</a></p>
+    <p>Don't have an account? <a href="<%= shopData.basePath || '' %>/users/register">Register here</a></p>
 </body>
 </html>

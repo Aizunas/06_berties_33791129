@@ -13,7 +13,7 @@ router.get('/books', (req, res, next) => {
     let params = [];
 
     if (search) {
-        sqlQuery += " WHERE title LIKE ?";
+        sqlQuery += " WHERE name LIKE ?";  // CHANGED: title -> name
         params.push('%' + search + '%');
     }
 
@@ -28,7 +28,7 @@ router.get('/books', (req, res, next) => {
     }
 
     // Add sorting if provided
-    if (sort === 'name') sqlQuery += " ORDER BY title";
+    if (sort === 'name') sqlQuery += " ORDER BY name";  // CHANGED: title -> name
     else if (sort === 'price') sqlQuery += " ORDER BY price";
 
     db.query(sqlQuery, params, (err, result) => {
@@ -41,6 +41,4 @@ router.get('/books', (req, res, next) => {
     });
 });
 
-
 module.exports = router;
-

@@ -1,11 +1,14 @@
 const express = require("express");
 const router = express.Router();
+const db = global.db; // using the same database pool from index.js
 
-const BASE_PATH = process.env.BASE_PATH || '';
-
-// Middleware to protect routes
+// Middleware to protect routes - FIXED
 const redirectLogin = (req, res, next) => {
-    if (!req.session.userId) return res.redirect(`${BASE_PATH}/users/login`);
+    if (!req.session.userId) {
+        // Get basePath from shopData - FIXED
+        const basePath = req.app.locals.shopData?.basePath || '';
+        return res.redirect(`${basePath}/users/login`);
+    }
     next();
 };
 

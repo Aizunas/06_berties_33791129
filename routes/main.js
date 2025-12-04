@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-const BASE_PATH = process.env.BASE_PATH || '';
-
-// Middleware to protect routes
+// Middleware to protect routes - FIXED
 const redirectLogin = (req, res, next) => {
-    if (!req.session.userId) return res.redirect(`${BASE_PATH}/users/login`);
+    if (!req.session.userId) {
+        // Get basePath from shopData - FIXED
+        const basePath = req.app.locals.shopData?.basePath || '';
+        return res.redirect(`${basePath}/users/login`);
+    }
     next();
 };
 
@@ -16,14 +18,17 @@ router.get('/about', (req, res) => {
     res.render('about');
 });
 
-// Logout
+// Logout - FIXED with basePath
 router.get('/logout', redirectLogin, (req, res) => {
     req.session.destroy(err => {
-        if (err) return res.redirect('/');
-        res.send("You are now logged out. <a href='/'>Home</a>");
+        if (err) {
+            const basePath = req.app.locals.shopData?.basePath || '';
+            return res.redirect(`${basePath}/`);
+        }
+        const basePath = req.app.locals.shopData?.basePath || '';
+        res.send(`You are now logged out. 
+            <a href='${basePath}/'>Home</a>`);
     });
 });
-
-
 
 module.exports = router;

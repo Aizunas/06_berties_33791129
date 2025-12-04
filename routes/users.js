@@ -6,9 +6,13 @@ const { check, validationResult } = require('express-validator');
 const db = global.db;
 const saltRounds = 10;
 
-// Middleware to protect routes
+// Middleware to protect routes - FIXED
 const redirectLogin = (req, res, next) => {
-    if (!req.session.userId) return res.redirect('/users/login');
+    if (!req.session.userId) {
+        // Get basePath from shopData - FIXED
+        const basePath = req.app.locals.shopData?.basePath || '';
+        return res.redirect(`${basePath}/users/login`);
+    }
     next();
 };
 
@@ -21,13 +25,11 @@ router.get('/register', (req, res) => {
     res.render('register', { errors: [] });
 });
 
-// Handle registration submission - UPDATED VALIDATION RULES
+// Handle registration submission
 router.post('/registered',
     [
         check('email').isEmail().withMessage('Invalid email address'),
-        // Updated: Username min 4 chars to accept 'gold' (4 chars), max 20
         check('username').isLength({ min: 4, max: 20 }).withMessage('Username must be 4-20 characters'),
-        // Updated: Password min 6 chars to accept 'smiths' (6 chars) and 'aaaaAAAA1234!'
         check('password').isLength({ min: 6, max: 100 }).withMessage('Password must be at least 6 characters')
     ],
     (req, res) => {
@@ -55,7 +57,10 @@ router.post('/registered',
                     console.error('Database error:', err);
                     return res.send("Database insert error: " + err.message);
                 }
-                res.send(`Hello ${first} ${last}, you are now registered! <a href='/users/login'>Login</a>`);
+                // FIXED: Added basePath to registration success link
+                const basePath = req.app.locals.shopData?.basePath || '';
+                res.send(`Hello ${first} ${last}, you are now registered! 
+                    <a href='${basePath}/users/login'>Login</a>`);
             });
         });
     }
@@ -98,7 +103,12 @@ router.post('/loggedin', (req, res) => {
             if (match) {
                 req.session.userId = username;
                 req.session.displayName = `${firstName} ${lastName}`;
-                res.send(`Login successful! Welcome, ${firstName} ${lastName}. <a href='/users/list'>User List</a> <br> <a href='/books/list'>Book List</a>`);
+                // FIXED: Added basePath to login success links
+                const basePath = req.app.locals.shopData?.basePath || '';
+                res.send(`Login successful! Welcome, ${firstName} ${lastName}. 
+                    <a href='${basePath}/users/list'>User List</a> 
+                    <br> 
+                    <a href='${basePath}/books/list'>Book List</a>`);
             } else {
                 res.send("Login failed: incorrect password.");
             }

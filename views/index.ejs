@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html>
   <head>
     <title>Welcome to <%=shopData.shopName%></title>
@@ -18,7 +18,50 @@
         <li><a href="/users/list">List Users</a></li>
         <li><a href="/weather">Weather</a></li>
         <li><a href="/users/audit">Audit Log</a></li>
+        <li><a href="/api/books">Books API</a></li>
+
     </ul>
+</body>
+</html>
+ -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to <%= shopData.shopName %></title>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+
+</head>
+
+<body>
+    <h1>Welcome to <%= shopData.shopName %></h1>
+
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+
+            <% if (isLoggedIn) { %>
+                <!-- Links only visible when logged in -->
+                <li><a href="/books/list">List Books</a></li>
+                <li><a href="/books/addbook">Add Book</a></li>
+                <li><a href="/books/bargainbooks">Bargain Books</a></li>
+                <li><a href="/books/search">Search Books</a></li>
+                <li><a href="/users/list">List Users</a></li>
+                <li><a href="/users/audit">Audit Log</a></li>
+                <li><a href="/weather">Weather</a></li>
+                <li><a href="/api/books">API - Books</a></li>
+                <li><a href="/users/logout">Logout</a></li>
+                <li><strong>Logged in as: <%= userId %></strong></li>
+
+            <% } else { %>
+                <!-- Links only visible when NOT logged in -->
+                <li><a href="/users/register">Register</a></li>
+                <li><a href="/users/login">Login</a></li>
+            <% } %>
+        </ul>
+    </nav>
+
+    <p>This is Bertie's Books – your one-stop shop for books and weather forecasts!</p>
 </body>
 </html>
 

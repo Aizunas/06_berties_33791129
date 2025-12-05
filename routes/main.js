@@ -4,7 +4,11 @@ const router = express.Router();
 
 // Handle our routes
 router.get('/', function(req, res, next) {
-    res.render('index.ejs');
+    // Pass shop name (via app.locals) and a simple isLoggedIn flag
+    res.render('index.ejs', { 
+        isLoggedIn: !!req.session.userId,
+        userId: req.session.userId   // true if logged in, false otherwise
+    });
 });
 
 router.get('/about', function(req, res, next) {

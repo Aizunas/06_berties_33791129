@@ -63,23 +63,23 @@ router.post('/registered',
                     return next(err);
                 }
 
-                // // Show success message with links
-                // let first = req.sanitize(req.body.first);
-                // let last = req.sanitize(req.body.last);
+                // Show success message with links
+                let first = req.sanitize(req.body.first);
+                let last = req.sanitize(req.body.last);
 
-                // res.send(`
-                //     <h2>Registration Successful!</h2>
-                //     <p>Hello ${first} ${last}, you are now registered!</p>
-                //     <p>We will send an email to you at ${req.body.email}.</p>
-                //     <button onclick="window.location.href='/'">Go to Home Page</button>
-                //     <button onclick="window.location.href='/users/login'">Login</button>
-                // `);
+                res.send(`
+                    <h2>Registration Successful!</h2>
+                    <p>Hello ${first} ${last}, you are now registered!</p>
+                    <p>We will send an email to you at ${req.body.email}.</p>
+                    <button onclick="window.location.href='/'">Go to Home Page</button>
+                    <button onclick="window.location.href='/users/login'">Login</button>
+                `);
 
-                // Automatically log in the user
-                req.session.userId = req.body.username;
+                // // Automatically log in the user
+                // req.session.userId = req.body.username;
 
-                // Redirect directly to home page
-                res.redirect('/users/login');
+                // // Redirect directly to home page
+                // res.redirect('/users/login');
             });
         });
     }

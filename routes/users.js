@@ -31,7 +31,7 @@ router.post('/registered',
     ],
     function(req, res, next) {
         const errors = validationResult(req);
-
+        
         if (!errors.isEmpty()) {
             // Send errors and form data back to the template
             return res.render('register.ejs', { 
@@ -48,7 +48,7 @@ router.post('/registered',
             }
 
             let sqlquery = "INSERT INTO users (username, first, last, email, hashedPassword) VALUES (?,?,?,?,?)";
-
+            
             // Sanitize first and last names
             let newrecord = [
                 req.body.username, 
@@ -63,23 +63,11 @@ router.post('/registered',
                     return next(err);
                 }
 
-                // Show success message with links
-                let first = req.sanitize(req.body.first);
-                let last = req.sanitize(req.body.last);
+                // Automatically log in the user
+                req.session.userId = req.body.username;
 
-                res.send(`
-                    <h2>Registration Successful!</h2>
-                    <p>Hello ${first} ${last}, you are now registered!</p>
-                    <p>We will send an email to you at ${req.body.email}.</p>
-                    <button onclick="window.location.href='/'">Go to Home Page</button>
-                    <button onclick="window.location.href='/users/login'">Login</button>
-                `);
-
-                // // Automatically log in the user
-                // req.session.userId = req.body.username;
-
-                // // Redirect directly to home page
-                // res.redirect('/users/login');
+                // Redirect to home page (the welcome page with logged-in menu)
+                res.redirect('/');
             });
         });
     }
@@ -137,7 +125,7 @@ router.post('/loggedin', function(req, res, next) {
                     req.session.userId = req.body.username;
 
                     // Redirect to originally requested page or home
-                    const redirectTo = req.session.redirectTo || '/books/list';
+                    const redirectTo = req.session.redirectTo || '/';
                     delete req.session.redirectTo;
                     return res.redirect(redirectTo);
 
@@ -163,10 +151,10 @@ router.post('/loggedin', function(req, res, next) {
 router.get('/logout', redirectLogin, (req, res) => {
     req.session.destroy(err => {
         if (err) {
-            return res.redirect('/');
+            return res.redirect('/users/login');
         }
         // In logout route, change the link:
-        res.send('you are now logged out. <a href="/users/login">Login</a> | <a href="/books/list">Books</a>');
+        res.send('you are now logged out. <a href="/users/login">Login</a> ');
     });
 });
 

@@ -1,30 +1,29 @@
 <!doctype html>
 <html>
-<head>
+  <head>
     <title>Register for <%=shopData.shopName%></title>
-    <link rel="stylesheet" type="text/css" href="<%= BASE_PATH || '' %>/main.css" />
-</head>
+    <link rel="stylesheet"  type="text/css" href="/main.css" />
+  </head>
 <body>
-    <h1>Register for <%=shopData.shopName%></h1>
-
-    <% if (errors && errors.length > 0) { %>
-        <ul style="color:red;">
-            <% errors.forEach(err => { %>
-                <li><%= err.msg %></li>
-            <% }) %>
-        </ul>
-    <% } %>
-
-    
-    <form method="POST" action="<%= shopData.basePath || '' %>/users/registered">
-        <p>Username: <input type="text" name="username" required /></p>
-        <p>Password: <input type="password" name="password" required /></p>
-        <p>First name: <input type="text" name="first" /></p>
-        <p>Last name: <input type="text" name="last" /></p>
-        <p>Email: <input type="email" name="email" /></p>
-        <input type="submit" value="Register" />
+    <h1>Register</h1>
+    <form method="POST" action="/users/registered">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="first">First Name:</label>
+        <input type="text" id="first" name="first" required>
+        <br>
+        <label for="last">Last Name:</label>
+        <input type="text" id="last" name="last" required>
+        <br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <input type="submit" value="Register">
     </form>
-    
-    <p><a href="<%= shopData.basePath || '' %>/users/login">Already have an account? Login</a></p>
+    <a href="/">Home</a>
 </body>
 </html>

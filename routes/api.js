@@ -1,44 +1,31 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const db = global.db; // using the same database pool from index.js
 
-// GET /api/books
-router.get('/books', (req, res, next) => {
-    let search = req.query.search;     
-    let minPrice = req.query.minprice;  
-    let maxPrice = req.query.maxprice;  
-    let sort = req.query.sort;         
-
-    let sqlQuery = "SELECT * FROM books";
-    let params = [];
-
-    if (search) {
-        sqlQuery += " WHERE name LIKE ?";  // CHANGED: title -> name
-        params.push('%' + search + '%');
+router.get('/books', function(req, res, next) {
+    let sqlquery = "SELECT * FROM books";
+    
+    // Check for search parameter
+    if (req.query.search) {
+        sqlquery = "SELECT * FROM books WHERE name LIKE ?";
+        let searchTerm = "%" + req.query.search + "%";
+        db.query(sqlquery, [searchTerm], (err, result) => {
+            if (err) {
+                res.json(err);
+                next(err);
+            } else {
+                res.json(result);
+            }
+        });
+    } else {
+        db.query(sqlquery, (err, result) => {
+            if (err) {
+                res.json(err);
+                next(err);
+            } else {
+                res.json(result);
+            }
+        });
     }
-
-    // Add price range filter if provided
-    if (minPrice && maxPrice) {
-        if (search) {
-            sqlQuery += " AND price BETWEEN ? AND ?";
-        } else {
-            sqlQuery += " WHERE price BETWEEN ? AND ?";
-        }
-        params.push(minPrice, maxPrice);
-    }
-
-    // Add sorting if provided
-    if (sort === 'name') sqlQuery += " ORDER BY name";  // CHANGED: title -> name
-    else if (sort === 'price') sqlQuery += " ORDER BY price";
-
-    db.query(sqlQuery, params, (err, result) => {
-        if (err) {
-            res.json({ error: err });
-            next(err);
-        } else {
-            res.json(result);
-        }
-    });
 });
 
 module.exports = router;

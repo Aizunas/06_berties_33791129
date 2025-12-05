@@ -1,28 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
-    <link rel="stylesheet" type="text/css" href="<%= BASE_PATH || '' %>/main.css">
+    <title>Login<%=shopData.shopName%></title>
+    <link rel="stylesheet"  type="text/css" href="/main.css" />
 </head>
 <body>
     <h1>Login</h1>
-
-    <form action="/users/loggedin" method="POST">
-        <p>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-        </p>
-
-        <p>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-        </p>
-
-        <p>
-            <button type="submit">Login</button>
-        </p>
+    <form method="POST" action="/users/loggedin">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <input type="submit" value="Login">
     </form>
-
-    <p>Don't have an account? <a href="<%= shopData.basePath || '' %>/users/register">Register here</a></p>
+    <a href="/">Home</a>
 </body>
 </html>

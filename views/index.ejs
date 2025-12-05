@@ -1,42 +1,24 @@
 <!doctype html>
 <html>
   <head>
-    <title>Welcome to <%= shopData.shopName %></title>
-    <link rel="stylesheet" type="text/css" href="/main.css" />
+    <title>Welcome to <%=shopData.shopName%></title>
+    <link rel="stylesheet"  type="text/css" href="/main.css" />
   </head>
   <body>
-    <h1>Welcome to <%= shopData.shopName %></h1>
-
-    <!-- Session-based login/logout links -->
-    <% if (session && session.userId) { %>
-      <p>
-        Welcome, <%= session.displayName || session.userId %> |
-        <a href="<%= shopData.basePath || '' %>/logout">Logout</a>
-      </p>
-    <% } else { %>
-      <p>
-        <a href="<%= shopData.basePath || '' %>/users/login">Login</a> |
-        <a href="<%= shopData.basePath || '' %>/users/register">Register</a>
-      </p>
-    <% } %>
-
-    <!-- Navigation links -->
-    <p><a href="<%= shopData.basePath || '' %>/about">About <%= shopData.shopName %></a></p>
-    <p><a href="<%= shopData.basePath || '' %>/books/search">Search for books</a></p>
-    
-    <!-- Protected pages: only show links if logged in -->
-    <% if (session && session.userId) { %>
-      <p><a href="<%= shopData.basePath || '' %>/books/list">Book List</a></p>
-      <p><a href="<%= shopData.basePath || '' %>/books/add">Add Book</a></p>
-    <% } else { %>
-      <p>Login to see book list or add a book.</p>
-    <% } %>
-
-    <!-- Search form: always visible -->
-    <form action="/books/search-result" method="GET">
-        <input type="text" name="keyword" placeholder="Search books" required>
-        <button type="submit">Search</button>
-    </form>
-
-  </body>
+    <h1>Welcome to Berties Books</h1>
+    <ul>
+        <li><a href="/about">About</a></li>
+        <li><a href="/books/list">List Books</a></li>
+        <li><a href="/books/addbook">Add Book</a></li>
+        <li><a href="/books/bargainbooks">Bargain Books</a></li>
+        <li><a href="/books/search">Search Books</a></li>
+        <li><a href="/users/register">Register</a></li>
+        <li><a href="/users/login">Login</a></li>
+        <li><a href="/users/logout">Logout</a></li>
+        <li><a href="/users/list">List Users</a></li>
+        <li><a href="/weather">Weather</a></li>
+        <li><a href="/users/audit">Audit Log</a></li>
+    </ul>
+</body>
 </html>
+

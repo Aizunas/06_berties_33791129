@@ -1,30 +1,32 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const request = require('request');
 
-router.get('/', (req, res, next) => {
-    let apiKey = process.env.WEATHER_API_KEY;
-    let city = req.query.city || 'London';
+router.get('/', function(req, res, next) {
+    res.render('weather.ejs');
+});
+
+router.get('/now', function(req, res, next) {
+    let apiKey = 'YOUR_API_KEY_HERE';
+    let city = req.query.city || 'london';
     let url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
-
-    request(url, (err, response, body) => {
-        if (err) return next(err);
-
-        let weather = JSON.parse(body);
-
-        if (weather && weather.main) {
-            res.render('weather', {
-                city: weather.name,
-                temp: weather.main.temp,
-                humidity: weather.main.humidity,
-                wind: weather.wind.speed,
-                description: weather.weather[0].description
-            });
+    
+    request(url, function(err, response, body) {
+        if (err) {
+            next(err);
         } else {
-            res.send("No weather data found for that city.");
+            var weather = JSON.parse(body);
+            if (weather !== undefined && weather.main !== undefined) {
+                var wmsg = 'It is ' + weather.main.temp +
+                    ' degrees in ' + weather.name +
+                    '! <br> The humidity now is: ' +
+                    weather.main.humidity;
+                res.send(wmsg);
+            } else {
+                res.send("No data found");
+            }
         }
     });
 });
-
 
 module.exports = router;

@@ -1,61 +1,72 @@
 const express = require("express");
 const router = express.Router();
-const db = global.db; // using the same database pool from index.js
 
-// Middleware to protect routes - FIXED
+// Middleware to redirect if not logged in
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
-        // Get basePath from shopData - FIXED
-        const basePath = req.app.locals.shopData?.basePath || '';
-        return res.redirect(`${basePath}/users/login`);
+        res.redirect('../users/login'); // redirect to the login page
+    } else {
+        next(); // move to the next middleware function
     }
-    next();
-};
+}
 
-// ---------------------------
-// Protected Routes
-// ---------------------------
+router.get('/list', redirectLogin, function(req, res, next) {
+    let sqlquery = "SELECT * FROM books"; // query database to get all the books
+    // execute sql query
+    db.query(sqlquery, (err, result) => {
+        if (err) {
+            next(err)
+        }
+        res.render("list.ejs", {availableBooks:result})
+     });
+});
 
-router.get('/list', redirectLogin, (req, res, next) => {
-    db.query("SELECT * FROM books", (err, result) => {
-        if (err) return next(err);
-        res.render("list", { availableBooks: result });
+router.get('/addbook', redirectLogin, function(req, res, next) {
+    res.render('addbook.ejs');
+});
+
+router.post('/bookadded', redirectLogin, function (req, res, next) {
+    // saving data in database
+    let sqlquery = "INSERT INTO books (name, price) VALUES (?,?)";
+    // execute sql query
+    let newrecord = [req.body.name, req.body.price];
+    db.query(sqlquery, newrecord, (err, result) => {
+        if (err) {
+            next(err)
+        }
+        else
+            res.send(' This book is added to database, name: '+ req.body.name + ' price '+ req.body.price);
+    })
+});
+
+// Route for bargain books (books under £20)
+router.get('/bargainbooks', function(req, res, next) {
+    let sqlquery = "SELECT * FROM books WHERE price < 20";
+    db.query(sqlquery, (err, result) => {
+        if (err) {
+            next(err);
+        }
+        res.render("list.ejs", {availableBooks:result});
     });
 });
 
-router.get('/add', redirectLogin, (req, res) => res.render('addbook'));
-
-router.post('/bookadded', redirectLogin, (req, res, next) => {
-    const name = req.sanitize(req.body.name);
-    const price = parseFloat(req.body.price);
-    if (isNaN(price) || price < 0) return res.send("Invalid price");
-
-    db.query("INSERT INTO books (name, price) VALUES (?, ?)", [name, price], (err) => {
-        if (err) return next(err);
-        res.send(`Book added: ${name}, Price: £${price}`);
-    });
+// Route to display search form
+router.get('/search', function(req, res, next) {
+    res.render("search.ejs");
 });
 
-// ---------------------------
-// Public Routes
-// ---------------------------
-
-router.get('/bargainbooks', (req, res, next) => {
-    db.query("SELECT name, price FROM books WHERE price < 20", (err, result) => {
-        if (err) return next(err);
-        res.render("list", { availableBooks: result });
-    });
-});
-
-router.get('/search', (req, res) => res.render("search"));
-
-router.get('/search-result', (req, res, next) => {
-    let keyword = req.sanitize(req.query.keyword);
-    if (!keyword) return res.render("list", { availableBooks: [] });
-
-    db.query("SELECT name, price FROM books WHERE name LIKE ?", ['%' + keyword + '%'], (err, result) => {
-        if (err) return next(err);
-        res.render("list", { availableBooks: result });
+// Route to handle search results (advanced search with LIKE)
+router.get('/search_result', function(req, res, next) {
+    // Search for books where name contains the search keyword (partial match)
+    let sqlquery = "SELECT * FROM books WHERE name LIKE ?";
+    // Use % wildcards for partial matching
+    let searchTerm = "%" + req.query.keyword + "%";
+    
+    db.query(sqlquery, [searchTerm], (err, result) => {
+        if (err) {
+            next(err);
+        }
+        res.render("list.ejs", {availableBooks:result});
     });
 });
 

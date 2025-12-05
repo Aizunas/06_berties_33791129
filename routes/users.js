@@ -1,142 +1,131 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const { check, validationResult } = require('express-validator');
-
-const db = global.db;
 const saltRounds = 10;
 
-// Middleware to protect routes - FIXED
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
-        // Get basePath from shopData - FIXED
-        const basePath = req.app.locals.shopData?.basePath || '';
-        return res.redirect(`${basePath}/users/login`);
+        res.redirect('./login'); // redirect to the login page
+    } else {
+        next(); // move to the next middleware function
     }
-    next();
-};
+}
 
-// ---------------------------
-// Registration Routes
-// ---------------------------
-
-// Render registration form
-router.get('/register', (req, res) => {
-    res.render('register', { errors: [] });
+// Route to display register form
+router.get('/register', function(req, res, next) {
+    res.render('register.ejs');
 });
 
-// Handle registration submission
-router.post('/registered',
-    [
-        check('email').isEmail().withMessage('Invalid email address'),
-        check('username').isLength({ min: 4, max: 20 }).withMessage('Username must be 4-20 characters'),
-        check('password').isLength({ min: 6, max: 100 }).withMessage('Password must be at least 6 characters')
-    ],
-    (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.render('register', { errors: errors.array() });
-        }
-
-        // Sanitize inputs
-        const first = req.sanitize(req.body.first);
-        const last = req.sanitize(req.body.last);
-        const username = req.sanitize(req.body.username);
-        const email = req.sanitize(req.body.email);
-        const password = req.body.password;
-
-        bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
-            if (err) {
-                console.error('Bcrypt error:', err);
-                return res.send("Error hashing password");
-            }
-
-            const sql = 'INSERT INTO users (username, first_name, last_name, email, hashed_password) VALUES (?, ?, ?, ?, ?)';
-            db.query(sql, [username, first, last, email, hashedPassword], (err, result) => {
+// Route to handle registration
+router.post('/registered', function(req, res, next) {
+    const plainPassword = req.body.password;
+    
+    // Hash the password
+    bcrypt.hash(plainPassword, saltRounds, function(err, hashedPassword) {
+        if (err) {
+            next(err);
+        } else {
+            // Store hashed password in database
+            let sqlquery = "INSERT INTO users (username, first, last, email, hashedPassword) VALUES (?,?,?,?,?)";
+            let newrecord = [req.body.username, req.body.first, req.body.last, req.body.email, hashedPassword];
+            
+            db.query(sqlquery, newrecord, (err, result) => {
                 if (err) {
-                    console.error('Database error:', err);
-                    return res.send("Database insert error: " + err.message);
+                    next(err);
+                } else {
+                    let result = 'Hello ' + req.body.first + ' ' + req.body.last + ' you are now registered! We will send an email to you at ' + req.body.email;
+                    result += ' Your password is: ' + req.body.password + ' and your hashed password is: ' + hashedPassword;
+                    res.send(result);
                 }
-                // FIXED: Added basePath to registration success link
-                const basePath = req.app.locals.shopData?.basePath || '';
-                res.send(`Hello ${first} ${last}, you are now registered! 
-                    <a href='${basePath}/users/login'>Login</a>`);
             });
-        });
-    }
-);
-
-// ---------------------------
-// Login Routes
-// ---------------------------
-
-router.get('/login', (req, res) => res.render('login'));
-
-router.post('/loggedin', (req, res) => {
-    const { username, password } = req.body;
-
-    const sql = "SELECT hashed_password, first_name, last_name FROM users WHERE username=?";
-    db.query(sql, [username], (err, results) => {
-        if (err) {
-            console.error('Login database error:', err);
-            return res.send("Database error.");
         }
-        
-        if (results.length === 0) {
-            db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, 0]);
-            return res.send("Login failed: username not found.");
-        }
-
-        const hashedPassword = results[0].hashed_password;
-        const firstName = results[0].first_name;
-        const lastName = results[0].last_name;
-
-        bcrypt.compare(password, hashedPassword, (err, match) => {
-            if (err) {
-                console.error('Bcrypt compare error:', err);
-                return res.send("Error comparing passwords.");
-            }
-
-            const successFlag = match ? 1 : 0;
-            db.query("INSERT INTO login_audit (username, success) VALUES (?, ?)", [username, successFlag]);
-
-            if (match) {
-                req.session.userId = username;
-                req.session.displayName = `${firstName} ${lastName}`;
-                // FIXED: Added basePath to login success links
-                const basePath = req.app.locals.shopData?.basePath || '';
-                res.send(`Login successful! Welcome, ${firstName} ${lastName}. 
-                    <a href='${basePath}/users/list'>User List</a> 
-                    <br> 
-                    <a href='${basePath}/books/list'>Book List</a>`);
-            } else {
-                res.send("Login failed: incorrect password.");
-            }
-        });
     });
 });
 
-// ---------------------------
-// Protected Routes
-// ---------------------------
-
-router.get('/list', redirectLogin, (req, res) => {
-    db.query("SELECT id, username, first_name, last_name, email FROM users", (err, result) => {
+// Route to list all users
+router.get('/list', redirectLogin, function(req, res, next) {
+    let sqlquery = "SELECT username, first, last, email FROM users"; // Don't select passwords!
+    
+    db.query(sqlquery, (err, result) => {
         if (err) {
-            console.error('User list error:', err);
-            return res.send("Error fetching users.");
+            next(err);
         }
-        res.render("listusers", { users: result });
+        res.render("userlist.ejs", {availableUsers:result});
     });
 });
 
-router.get('/audit', redirectLogin, (req, res) => {
-    db.query("SELECT username, success, timestamp FROM login_audit ORDER BY timestamp DESC", (err, results) => {
+// Route to display login form
+router.get('/login', function(req, res, next) {
+    res.render('login.ejs');
+});
+
+// Route to handle login
+router.post('/loggedin', function(req, res, next) {
+    // Get the hashed password for the user from database
+    let sqlquery = "SELECT hashedPassword FROM users WHERE username = ?";
+    
+    db.query(sqlquery, [req.body.username], (err, result) => {
         if (err) {
-            console.error('Audit log error:', err);
-            return res.send("Error fetching audit logs.");
+            next(err);
+        } else if (result.length == 0) {
+            // Log failed login - user not found
+            let auditQuery = "INSERT INTO audit_log (username, action, success) VALUES (?, 'login', false)";
+            db.query(auditQuery, [req.body.username], (err, result) => {
+                if (err) console.error(err);
+            });
+            
+            res.send('Login failed: user not found');
+        } else {
+            let hashedPassword = result[0].hashedPassword;
+            
+            // Compare the password supplied with the password in the database
+            bcrypt.compare(req.body.password, hashedPassword, function(err, result) {
+                if (err) {
+                    next(err);
+                } else if (result == true) {
+                    // Log successful login
+                    let auditQuery = "INSERT INTO audit_log (username, action, success) VALUES (?, 'login', true)";
+                    db.query(auditQuery, [req.body.username], (err, result) => {
+                        if (err) console.error(err);
+                    });
+
+                    // Save user session here, when login is successful
+                    req.session.userId = req.body.username;
+                    
+                    res.send('Login successful! Welcome ' + req.body.username);
+                } else {
+                    // Log failed login - wrong password
+                    let auditQuery = "INSERT INTO audit_log (username, action, success) VALUES (?, 'login', false)";
+                    db.query(auditQuery, [req.body.username], (err, result) => {
+                        if (err) console.error(err);
+                    });
+                    
+                    res.send('Login failed: incorrect password');
+                }
+            });
         }
-        res.render("audit", { logs: results });
+    });
+});
+
+// Route to view audit log
+router.get('/audit', function(req, res, next) {
+    let sqlquery = "SELECT * FROM audit_log ORDER BY timestamp DESC";
+    
+    db.query(sqlquery, (err, result) => {
+        if (err) {
+            next(err);
+        }
+        res.render("audit.ejs", {auditLog:result});
+    });
+});
+
+// Route to logout
+router.get('/logout', redirectLogin, (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.redirect('./');
+        }
+        res.send('you are now logged out. <a href=' + './' + '>Home</a>');
     });
 });
 

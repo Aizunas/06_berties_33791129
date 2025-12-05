@@ -1,15 +1,16 @@
 <!doctype html>
 <html>
   <head>
-    <title>Search <%= shopData.shopName %></title>
-    <link rel="stylesheet" type="text/css" href="/main.css" />
+    <title>Search <%=shopData.shopName%></title>
+    <link rel="stylesheet"  type="text/css" href="/main.css" />
   </head>
-  <body>
-    <h1>Search <%= shopData.shopName %></h1>
-    <form action="/books/search-result" method="GET">
-      <p>What book do you want?</p>
-      <input type="text" name="keyword" required>
-      <input type="submit" value="Search">
+<body>
+    <h1>Search for Books</h1>
+    <form method="GET" action="/books/search_result">
+        <label for="keyword">Search Keyword:</label>
+        <input type="text" id="keyword" name="keyword" required>
+        <input type="submit" value="Search">
     </form>
-  </body>
+    <a href="/">Home</a>
+</body>
 </html>

@@ -1,20 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Weather in <%= city %></title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f0f8ff; color: #333; }
-        .weather-box { padding: 20px; border-radius: 8px; background-color: #d0e7ff; display: inline-block; }
-        h1 { margin-top: 0; }
-    </style>
+    <title>Weather</title>
 </head>
 <body>
-    <div class="weather-box">
-        <h1>Weather in <%= city %></h1>
-        <p>Temperature: <%= temp %> °C</p>
-        <p>Humidity: <%= humidity %> %</p>
-        <p>Wind Speed: <%= wind %> m/s</p>
-        <p>Condition: <%= description %></p>
-    </div>
+    <h1>Weather Forecast</h1>
+    <form method="GET" action="/weather/now">
+        <label for="city">City:</label>
+        <input type="text" id="city" name="city" placeholder="e.g., London">
+        <input type="submit" value="Get Weather">
+    </form>
+    <a href="/">Home</a>
 </body>
 </html>

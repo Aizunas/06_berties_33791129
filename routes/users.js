@@ -79,7 +79,7 @@ router.post('/registered',
                 req.session.userId = req.body.username;
 
                 // Redirect directly to home page
-                res.redirect('/');
+                res.redirect('/users/login');
             });
         });
     }
@@ -137,7 +137,7 @@ router.post('/loggedin', function(req, res, next) {
                     req.session.userId = req.body.username;
 
                     // Redirect to originally requested page or home
-                    const redirectTo = req.session.redirectTo || '/';
+                    const redirectTo = req.session.redirectTo || '/books/list';
                     delete req.session.redirectTo;
                     return res.redirect(redirectTo);
 
@@ -165,7 +165,8 @@ router.get('/logout', redirectLogin, (req, res) => {
         if (err) {
             return res.redirect('/');
         }
-        res.send('you are now logged out. <a href=' + './login' + '>Login</a>');
+        // In logout route, change the link:
+        res.send('you are now logged out. <a href="/users/login">Login</a> | <a href="/books/list">Books</a>');
     });
 });
 

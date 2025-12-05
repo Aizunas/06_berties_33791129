@@ -100,7 +100,7 @@ router.get('/list', redirectLogin, function(req, res, next) {
 
 // Route to display login form
 router.get('/login', function(req, res, next) {
-    res.render('login.ejs' ); // Pass error as null initially
+    res.render('login.ejs' ); // Pass error as null 
 });
 
 
